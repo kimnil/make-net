@@ -1,0 +1,11 @@
+{
+  "name": "make-net",
+  "version": "0.0.1",
+  "description": "Allows for spawning TM-docker containers and attaching these together with peers - into a net",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kim Nilsson",
+  "license": "ISC"
+}
