@@ -4,9 +4,7 @@ const fs = require('fs');
 const cp = require('child_process');
 
 const stdio = process.stdin,
-      stdout = process.stdout,
-      containers = [];
-
+      stdout = process.stdout;
 
 if (process.argv.length < 3) {
     stdout.write("You did not supply a net specification file! How am I suppouse to know what network you want me to make!?\n");
@@ -19,8 +17,8 @@ const netSpecFile = args[0];
 
 const netSpec = parseFile(netSpecFile);
 const nodes = readNodeSpecs(netSpec);
-spawnContainers(nodes);
 
+spawnContainers(nodes);
 logNodes(nodes);
 
 function showUsage() {
