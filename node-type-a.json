@@ -1,0 +1,7 @@
+{
+    "container": "...container...",
+    "boards": [
+        "tpddgbe10:1:1",
+        "tpddgbe10:1:2"
+    ]
+}

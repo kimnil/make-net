@@ -1,0 +1,22 @@
+Example use case:
+
+node-type-a.json
+---------------
+{
+    "container": "...container...",
+    "boards": [
+        "tpddgbe10:1:1",
+        "tpddgbe10:1:2"
+    ]
+}
+
+net.json
+--------------
+{
+    "A": "node-type-a",
+    "B": "node-type-a"
+}
+
+$ node make-net net.json 
+A 172.17.0.1
+B 172.17.0.1
