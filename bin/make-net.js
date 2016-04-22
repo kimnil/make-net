@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const cp = require('child_process');
+const nodeCom = require('../lib/node_com.js');
 
 const stdio = process.stdin,
       stdout = process.stdout;
@@ -19,6 +20,7 @@ const netSpec = parseFile(netSpecFile);
 const nodes = readNodeSpecs(netSpec);
 
 spawnContainers(nodes);
+createEquipment(nodes);
 logNodes(nodes);
 
 function showUsage() {
@@ -61,7 +63,7 @@ function spawnContainers(nodes) {
 function spawnContainer(container) {
     const command = "docker run --privileged -dit " + container;
     console.log("Executing " + command);
-    return cp.execSync(command);
+    return cp.execSync(command).toString('utf8');
 }
 
 function getIpFromHash(hash) {
@@ -72,5 +74,13 @@ function getIpFromHash(hash) {
 function logNodes(nodes) {
     Object.keys(nodes).forEach( (node) => {
         console.log(node + "\t" + nodes[node].ip);
+    });
+}
+
+function createEquipment(nodes) {
+    Object.keys(nodes).forEach((nodeName) => {
+        console.log(nodeName);
+        const node = nodes[nodeName];
+        nodeCom.createEquipment(node.ip, node.boards);
     });
 }
