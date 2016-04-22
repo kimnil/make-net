@@ -58,13 +58,15 @@ function spawnContainers(nodes) {
     }
 }
 
-function getIpFromHash(hash) {
-    return "ip";
+function spawnContainer(container) {
+    const command = "docker run --privileged -dit " + container;
+    console.log("Executing " + command);
+    return cp.execSync(command);
 }
 
-function spawnContainer(container) {
-    console.log("docker exec something.... " + container);
-    return "#123";
+function getIpFromHash(hash) {
+    const buffer = cp.execSync("docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "+hash);
+    return buffer.toString('utf8').trim();
 }
 
 function logNodes(nodes) {

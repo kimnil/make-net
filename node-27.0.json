@@ -1,5 +1,5 @@
 {
-    "container": "...container...",
+    "container": "artifactory.transmode.se/tm3k/trunk-hostenv:26.0",
     "boards": [
         "tpddgbe10:1:1",
         "tpddgbe10:1:2"
