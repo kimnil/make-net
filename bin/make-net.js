@@ -16,11 +16,15 @@ if (process.argv.length < 3) {
 const args = process.argv.slice(2);
 const netSpecFile = args[0];
 
-const netSpec = parseFile(netSpecFile);
+const spec = parseFile(netSpecFile);
+console.log(spec);
+const netSpec = spec.nodes;
+const peers = spec.peers;
 const nodes = readNodeSpecs(netSpec);
 
 spawnContainers(nodes);
 createEquipment(nodes);
+createPeers(peers);
 logNodes(nodes);
 
 function showUsage() {
@@ -79,8 +83,16 @@ function logNodes(nodes) {
 
 function createEquipment(nodes) {
     Object.keys(nodes).forEach((nodeName) => {
-        console.log(nodeName);
         const node = nodes[nodeName];
         nodeCom.createEquipment(node.ip, node.boards);
+    });
+}
+
+function createPeers(peers) {
+    peers.forEach((peer) => {
+        const aEnd = peer[0];
+        const zEnd = peer[1];
+        const aEndIp = nodes[aEnd.substr(0, aEnd.indexOf(':'))].ip;
+        const zEndIp = nodes[aEnd.substr(0, aEnd.indexOf(':'))].ip;
     });
 }

@@ -1,4 +1,11 @@
 {
-    "A": "node-27.0.json",
-    "B": "node-27.0.json"
+    "nodes": {
+        "A": "node-27.0.json",
+        "B": "node-27.0.json"
+    },
+
+    "peers": [
+        ["A:1:1", "B:1:2"],
+        ["B:1:1", "A:1:2"]
+    ]
 }
