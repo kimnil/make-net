@@ -94,12 +94,13 @@ function createEquipment(nodes) {
         const node = nodes[nodeName];
         promises.push(nodeCom.createEquipment(node.ip, node.boards));
     });
-    return Q.all(promises);
+    return Q.all(promises)
+        .catch((err) => { console.log("Something went wrong creating eq", err)});
 }
 
 function createPeers(peers) {
     const promises = [];
-    console.log("Creating peers", peers);
+    console.log("Creating peers");
     peers.forEach((peer) => {
         const aEnd = peer[0];
         const zEnd = peer[1];
@@ -112,10 +113,8 @@ function createPeers(peers) {
     });
 
 
-    console.log("Promises", promises);
     Q.all(promises)
-        .then(() => { console.log("All peer should be done by now");})
-        .catch(() => { console.log("Something went south when creating peers")});
+        .catch((err) => { console.log("Something went south when creating peers", err)});
 }
 
 // A:1:1:2 --> A
