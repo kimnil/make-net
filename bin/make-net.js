@@ -3,6 +3,7 @@
 const fs = require('fs');
 const cp = require('child_process');
 const nodeCom = require('../lib/node_com.js');
+const Q = require('q');
 
 const stdio = process.stdin,
       stdout = process.stdout;
@@ -17,14 +18,16 @@ const args = process.argv.slice(2);
 const netSpecFile = args[0];
 
 const spec = parseFile(netSpecFile);
-console.log(spec);
 const netSpec = spec.nodes;
 const peers = spec.peers;
 const nodes = readNodeSpecs(netSpec);
 
 spawnContainers(nodes);
-createEquipment(nodes);
-createPeers(peers);
+
+createEquipment(nodes).then( () => {
+    console.log("All eq should be done by now");
+    createPeers(peers);
+});
 logNodes(nodes);
 
 function showUsage() {
@@ -52,15 +55,19 @@ function parseFile(pathToNetSpec) {
 function readNodeSpecs(netSpec) {
     const specs = {};
     for (nodeName in netSpec) {
-       specs[nodeName] = specs[nodeName] || parseFile(netSpec[nodeName]); 
+        if (netSpec.hasOwnProperty(nodeName)) {
+            specs[nodeName] = specs[nodeName] || parseFile(netSpec[nodeName]);
+        }
     }
     return specs;
 }
 
 function spawnContainers(nodes) {
     for(node in nodes) {
-       nodes[node].hash = spawnContainer(nodes[node].container);
-       nodes[node].ip = getIpFromHash(nodes[node].hash);
+        if (nodes.hasOwnProperty(node)) {
+            nodes[node].hash = spawnContainer(nodes[node].container);
+            nodes[node].ip = getIpFromHash(nodes[node].hash);
+        }
     }
 }
 
@@ -82,17 +89,41 @@ function logNodes(nodes) {
 }
 
 function createEquipment(nodes) {
+    const promises = [];
     Object.keys(nodes).forEach((nodeName) => {
         const node = nodes[nodeName];
-        nodeCom.createEquipment(node.ip, node.boards);
+        promises.push(nodeCom.createEquipment(node.ip, node.boards));
     });
+    return Q.all(promises);
 }
 
 function createPeers(peers) {
+    const promises = [];
+    console.log("Creating peers", peers);
     peers.forEach((peer) => {
         const aEnd = peer[0];
         const zEnd = peer[1];
-        const aEndIp = nodes[aEnd.substr(0, aEnd.indexOf(':'))].ip;
-        const zEndIp = nodes[aEnd.substr(0, aEnd.indexOf(':'))].ip;
+        const aEndIp = nodes[peerToNodeName(aEnd)].ip;
+        const zEndIp = nodes[peerToNodeName(zEnd)].ip;
+        const aEndLabel = peerToLabel(aEnd);
+        const zEndLabel = peerToLabel(zEnd);
+
+        promises.push(nodeCom.createPeer(aEndLabel, zEndLabel, aEndIp, zEndIp));
     });
+
+
+    console.log("Promises", promises);
+    Q.all(promises)
+        .then(() => { console.log("All peer should be done by now");})
+        .catch(() => { console.log("Something went south when creating peers")});
+}
+
+// A:1:1:2 --> A
+function peerToNodeName(end) {
+    return end.substr(0, end.indexOf(':'));
+}
+
+// A:1:1:2 --> 1:1:2
+function peerToLabel(end) {
+    return end.substr(end.indexOf(':')+1);
 }
