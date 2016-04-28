@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/node --harmony
 
 const fs = require('fs');
 const cp = require('child_process');
