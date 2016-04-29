@@ -24,10 +24,15 @@ const nodes = readNodeSpecs(netSpec);
 
 spawnContainers(nodes);
 
-createEquipment(nodes).then( () => {
-    console.log("All equipment done");
-    createPeers(peers);
-});
+createEquipment(nodes)
+    .then( () => {
+        console.log("All equipment done");
+        return createPeers(peers);
+    })
+    .catch( (err) => {
+        console.log("Something got messed up. Terminating all Docker nodes.");
+        killContainers(nodes);
+    });
 logNodes(nodes);
 
 function showUsage() {
@@ -76,6 +81,21 @@ function spawnContainer(container) {
     console.log("Executing " + command);
     return cp.execSync(command).toString('utf8');
 }
+
+function killContainers(nodes) {
+    var nodeHashes = "";
+
+    for(node in nodes) {
+        if (nodes.hasOwnProperty(node)) {
+            nodeHashes += " " + nodes[node].hash;
+        }
+    }
+
+    const command = "docker kill" + nodeHashes;
+    console.log("Executing " + command);
+    return cp.execSync(command).toString('utf8');
+}
+
 
 function getIpFromHash(hash) {
     const buffer = cp.execSync("docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "+hash);

@@ -18,5 +18,4 @@
   "bin": {
     "make-net": "bin/make-net.js"
   }
-
 }
