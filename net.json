@@ -1,7 +1,7 @@
 {
     "nodes": {
-        "A": "node-27.0.json",
-        "B": "node-27.0.json"
+        "A": "node-latest.json",
+        "B": "node-latest.json"
     },
 
     "peers": [

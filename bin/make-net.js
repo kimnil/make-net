@@ -72,7 +72,7 @@ function spawnContainers(nodes) {
 }
 
 function spawnContainer(container) {
-    const command = "docker run -m 512M --privileged -dit " + container;
+    const command = "docker run --privileged -dit " + container;
     console.log("Executing " + command);
     return cp.execSync(command).toString('utf8');
 }

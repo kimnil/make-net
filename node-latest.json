@@ -1,0 +1,7 @@
+{
+    "container": "artifactory.transmode.se/tm3k/trunk-hostenv:latest",
+    "boards": [
+        "tpD10GbE:1:2",
+        "emxp3:1:4"
+    ]
+}
