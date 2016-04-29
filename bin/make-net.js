@@ -25,7 +25,7 @@ const nodes = readNodeSpecs(netSpec);
 spawnContainers(nodes);
 
 createEquipment(nodes).then( () => {
-    console.log("All eq should be done by now");
+    console.log("All equipment done");
     createPeers(peers);
 });
 logNodes(nodes);
@@ -72,7 +72,7 @@ function spawnContainers(nodes) {
 }
 
 function spawnContainer(container) {
-    const command = "docker run --privileged -dit " + container;
+    const command = "docker run -m 512M --privileged -dit " + container;
     console.log("Executing " + command);
     return cp.execSync(command).toString('utf8');
 }
