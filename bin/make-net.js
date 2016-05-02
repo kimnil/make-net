@@ -76,13 +76,13 @@ function readNodeSpecs(netSpec) {
 
 function spawnContainers(nodes) {
     Object.keys(nodes).forEach((node) => {
-        nodes[node].hash = spawnContainer(nodes[node].container);
+        nodes[node].hash = spawnContainer(nodes[node]);
         nodes[node].ip = getIpFromHash(nodes[node].hash);
     });
 }
 
-function spawnContainer(container) {
-    const command = "docker run --privileged -dit " + container;
+function spawnContainer(node) {
+    const command = "docker run -e \"DEMO=true\" --privileged -dit " + node.container.base + ":" + node.container.version;
     console.log("Executing " + command);
     return cp.execSync(command).toString('utf8');
 }
@@ -126,6 +126,8 @@ function createPeers(token, peers) {
         const zEndLabel = peerToLabel(zEnd);
 
 
+        console.log("Create peer", peer);
+
         const peerPromise = Q.delay(1000*(index+1)).done(() => {
             nodeCom.createPeer(token, aEndLabel, zEndLabel, aEndIp, zEndIp)
         });
@@ -147,7 +149,29 @@ function peerToNodeName(end) {
     return end.substr(0, end.indexOf(':'));
 }
 
+// >= R27
+// A:1:1:2 --> 1:1:0:2
+//
+// < R27
 // A:1:1:2 --> 1:1:2
 function peerToLabel(end) {
-    return end.substr(end.indexOf(':')+1);
+    const node = nodes[peerToNodeName(end)];
+    const nodeVersion = node.container.version;
+    const subSlotPort = end.substr(end.indexOf(':')+1);
+
+    console.log(node, nodeVersion, subSlotPort);
+
+    // If peer is already written with MPO port inluded, just use it.
+    if ((subSlotPort.match(/\:/g)||[]).length === 3) {
+        return subSlotPort;
+    }
+
+    // Depending on container version, add a MPO identifer.
+    if (nodeVersion === "latest" || nodeVersion >= 27) {
+        const slotPortSepPos = subSlotPort.indexOf(":", 2);
+        return subSlotPort.slice(0, slotPortSepPos) + ":0" + subSlotPort.slice(slotPortSepPos);
+    } else {
+        return subSlotPort;
+    }
+
 }

@@ -1,7 +1,7 @@
 {
     "container": {
         "base": "artifactory.transmode.se/tm3k/trunk-hostenv",
-        "version": "latest"
+        "version": "26.0"
     },
 
     "boards": [
