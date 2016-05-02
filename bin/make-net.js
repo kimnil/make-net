@@ -4,6 +4,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const nodeCom = require('../lib/node_com.js');
 const Q = require('q');
+const LOGIN_RETRIES = 20;
 
 const stdio = process.stdin,
       stdout = process.stdout;
@@ -23,17 +24,23 @@ const peers = spec.peers;
 const nodes = readNodeSpecs(netSpec);
 
 spawnContainers(nodes);
-
-createEquipment(nodes)
-    .then( () => {
-        console.log("All equipment done");
-        return createPeers(peers);
-    })
-    .catch( (err) => {
-        console.log("Something got messed up. Terminating all Docker nodes.");
-        killContainers(nodes);
-    });
 logNodes(nodes);
+
+Object.keys(nodes).forEach((nodeLabel) => {
+    const node = nodes[nodeLabel];
+
+    const sessionPromise = nodeCom.getSessionToken(node.ip, LOGIN_RETRIES);
+    sessionPromise.then((token) => {
+        const eqPromise = nodeCom.createEquipment(token, node.ip, node.boards);
+        eqPromise.then(() => { createPeers(token, peers) });
+    });
+    sessionPromise.catch((err) => errHandler(err));
+});
+
+function errHandler(err) {
+    console.log("An error occured", err);
+    killContainers(nodes);
+}
 
 function showUsage() {
     stdout.write("\n");
@@ -68,12 +75,10 @@ function readNodeSpecs(netSpec) {
 }
 
 function spawnContainers(nodes) {
-    for(node in nodes) {
-        if (nodes.hasOwnProperty(node)) {
-            nodes[node].hash = spawnContainer(nodes[node].container);
-            nodes[node].ip = getIpFromHash(nodes[node].hash);
-        }
-    }
+    Object.keys(nodes).forEach((node) => {
+        nodes[node].hash = spawnContainer(nodes[node].container);
+        nodes[node].ip = getIpFromHash(nodes[node].hash);
+    });
 }
 
 function spawnContainer(container) {
@@ -83,6 +88,7 @@ function spawnContainer(container) {
 }
 
 function killContainers(nodes) {
+    console.log("Cleaning up...");
     var nodeHashes = "";
 
     for(node in nodes) {
@@ -108,20 +114,10 @@ function logNodes(nodes) {
     });
 }
 
-function createEquipment(nodes) {
+function createPeers(token, peers) {
+    console.log("Creating peers", peers);
     const promises = [];
-    Object.keys(nodes).forEach((nodeName) => {
-        const node = nodes[nodeName];
-        promises.push(nodeCom.createEquipment(node.ip, node.boards));
-    });
-    return Q.all(promises)
-        .catch((err) => { console.log("Something went wrong creating eq", err)});
-}
-
-function createPeers(peers) {
-    const promises = [];
-    console.log("Creating peers");
-    peers.forEach((peer) => {
+    peers.forEach((peer, index) => {
         const aEnd = peer[0];
         const zEnd = peer[1];
         const aEndIp = nodes[peerToNodeName(aEnd)].ip;
@@ -129,12 +125,21 @@ function createPeers(peers) {
         const aEndLabel = peerToLabel(aEnd);
         const zEndLabel = peerToLabel(zEnd);
 
-        promises.push(nodeCom.createPeer(aEndLabel, zEndLabel, aEndIp, zEndIp));
+
+        const peerPromise = Q.delay(1000*(index+1)).done(() => {
+            nodeCom.createPeer(token, aEndLabel, zEndLabel, aEndIp, zEndIp)
+        });
+        promises.push(peerPromise);
     });
 
+    const peersPromise = Q.all(promises);
 
-    Q.all(promises)
-        .catch((err) => { console.log("Something went south when creating peers", err)});
+    peersPromise.catch((err) => {
+        console.log("Something went south when creating peers", err)
+        throw err;
+    });
+
+    return peersPromise;
 }
 
 // A:1:1:2 --> A
