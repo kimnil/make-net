@@ -5,9 +5,15 @@
     },
 
     "boards": [
-        "tpD10GbE:1:2",
-        "tpD10GbE:1:3",
-        "tpD10GbE:1:4",
-        "tpD10GbE:1:5"
+        {"name":"tpD10GbE:1:2", "settings": []},
+        {"name":"tpD10GbE:1:3", "settings": []},
+        {"name":"tpD10GbE:1:4", "settings": []},
+        {"name":"mxp8:1:5", "settings": []}
+    ],
+
+
+    "internals": [
+        ["1:5:2", "1:2:3"],
+        ["1:2:4", "1:5:1"]
     ]
 }

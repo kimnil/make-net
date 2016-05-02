@@ -1,6 +1,6 @@
 {
   "name": "make-net",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Allows for spawning TM-docker containers and attaching these together with peers - into a net",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "author": "Kim Nilsson",
   "license": "ISC",
   "dependencies": {
+    "object-assign": "^4.0.1",
     "q": "^1.4.1",
     "rest": "^1.3.2"
   },

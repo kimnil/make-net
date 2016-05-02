@@ -32,7 +32,9 @@ Object.keys(nodes).forEach((nodeLabel) => {
     const sessionPromise = nodeCom.getSessionToken(node.ip, LOGIN_RETRIES);
     sessionPromise.then((token) => {
         const eqPromise = nodeCom.createEquipment(token, node.ip, node.boards);
-        eqPromise.then(() => { createPeers(token, peers) });
+        const confPromise = eqPromise.then(() => { nodeCom.configureBoard(token, node.ip, node.boards)});
+        const internalsPromise = confPromise.then(() => { nodeCom.createInternals(token, node, node.internals)});
+        const peersPromise = internalsPromise.then(() => { createPeers(token, peers) });
     });
     sessionPromise.catch((err) => errHandler(err));
 });
@@ -125,9 +127,6 @@ function createPeers(token, peers) {
         const aEndLabel = peerToLabel(aEnd);
         const zEndLabel = peerToLabel(zEnd);
 
-
-        console.log("Create peer", peer);
-
         const peerPromise = Q.delay(1000*(index+1)).done(() => {
             nodeCom.createPeer(token, aEndLabel, zEndLabel, aEndIp, zEndIp)
         });
@@ -137,7 +136,7 @@ function createPeers(token, peers) {
     const peersPromise = Q.all(promises);
 
     peersPromise.catch((err) => {
-        console.log("Something went south when creating peers", err)
+        console.log("Something went south when creating peers", err);
         throw err;
     });
 
