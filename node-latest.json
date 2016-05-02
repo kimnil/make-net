@@ -9,7 +9,7 @@
             "wdm/if/wdm:1:2:3-4/set.json?wdmIfExpectedTxLambda=ch921"
         ]},
         {"name":"tpD10GbE:1:3", "settings": []},
-        {"name":"tpD10GbE:1:4", "settings": []},
+        {"name":"tpD10GbE:2:4", "settings": []},
         {"name":"mxp8:1:5", "settings": []}
     ],
 
