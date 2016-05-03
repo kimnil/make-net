@@ -126,7 +126,7 @@ function createPeers(token, peers) {
         const aEndLabel = peerToLabel(aEnd);
         const zEndLabel = peerToLabel(zEnd);
 
-        const peerPromise = Q.delay(1000*(index+1)).done(() => {
+        const peerPromise = Q.delay(3500*(index+1)).done(() => {
             nodeCom.createPeer(token, aEndLabel, zEndLabel, aEndIp, zEndIp)
         });
         promises.push(peerPromise);
