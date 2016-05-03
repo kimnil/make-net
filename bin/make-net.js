@@ -117,7 +117,6 @@ function logNodes(nodes) {
 }
 
 function createPeers(token, peers) {
-    console.log("Creating peers", peers);
     const promises = [];
     peers.forEach((peer, index) => {
         const aEnd = peer[0];
@@ -157,8 +156,6 @@ function peerToLabel(end) {
     const node = nodes[peerToNodeName(end)];
     const nodeVersion = node.container.version;
     const subSlotPort = end.substr(end.indexOf(':')+1);
-
-    console.log(node, nodeVersion, subSlotPort);
 
     // If peer is already written with MPO port inluded, just use it.
     if ((subSlotPort.match(/\:/g)||[]).length === 3) {
