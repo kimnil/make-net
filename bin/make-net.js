@@ -31,12 +31,13 @@ Object.keys(nodes).forEach((nodeLabel) => {
 
     const sessionPromise = nodeCom.getSessionToken(node.ip, LOGIN_RETRIES);
     sessionPromise.then((token) => {
-        const eqPromise = nodeCom.createEquipment(token, node.ip, node.boards);
-        const confPromise = eqPromise.then(() => { nodeCom.configureBoard(token, node.ip, node.boards)});
-        const internalsPromise = confPromise.then(() => { nodeCom.createInternals(token, node, node.internals)});
-        const peersPromise = internalsPromise.then(() => { createPeers(token, peers) });
+        const subrackPromise = nodeCom.createSubracks(token, node.ip, node.boards);
+        const eqPromise = subrackPromise.then(() => { return nodeCom.createEquipment(token, node.ip, node.boards)});
+        const confPromise = eqPromise.then(() => { return nodeCom.configureBoard(token, node.ip, node.boards)});
+        const internalsPromise = confPromise.then(() => { return nodeCom.createInternals(token, node, node.internals)});
+        const peersPromise = internalsPromise.then(() => { return createPeers(token, peers) });
     });
-    sessionPromise.catch((err) => errHandler(err));
+    sessionPromise.fail((err) => errHandler(err));
 });
 
 function errHandler(err) {
@@ -117,6 +118,10 @@ function logNodes(nodes) {
 }
 
 function createPeers(token, peers) {
+    console.log("=======================================");
+    console.log("=========== Create peers ==============");
+    console.log("=======================================");
+
     const promises = [];
     peers.forEach((peer, index) => {
         const aEnd = peer[0];
@@ -126,8 +131,9 @@ function createPeers(token, peers) {
         const aEndLabel = peerToLabel(aEnd);
         const zEndLabel = peerToLabel(zEnd);
 
-        const peerPromise = Q.delay(3500*(index+1)).done(() => {
-            nodeCom.createPeer(token, aEndLabel, zEndLabel, aEndIp, zEndIp)
+        // Too long sleep here, sort by IP and do several nodes concurrently!
+        const peerPromise = Q.delay(7000*index).done(() => {
+            nodeCom.createAndConfigPeer(token, aEndLabel, zEndLabel, aEndIp, zEndIp)
         });
         promises.push(peerPromise);
     });
