@@ -3,6 +3,7 @@
 const fs = require('fs');
 const cp = require('child_process');
 const nodeCom = require('../lib/node_com.js');
+const utils = require('../lib/utils.js');
 const Q = require('q');
 const LOGIN_RETRIES = 20;
 
@@ -36,6 +37,8 @@ Object.keys(nodes).forEach((nodeLabel) => {
         const confPromise = eqPromise.then(() => { return nodeCom.configureBoard(token, node.ip, node.boards)});
         const internalsPromise = confPromise.then(() => { return nodeCom.createInternals(token, node, node.internals)});
         const peersPromise = internalsPromise.then(() => { return createPeers(token, peers) });
+
+        return peersPromise;
     });
     sessionPromise.fail((err) => errHandler(err));
 });
@@ -122,58 +125,34 @@ function createPeers(token, peers) {
     console.log("=========== Create peers ==============");
     console.log("=======================================");
 
-    const promises = [];
-    peers.forEach((peer, index) => {
-        const aEnd = peer[0];
-        const zEnd = peer[1];
-        const aEndIp = nodes[peerToNodeName(aEnd)].ip;
-        const zEndIp = nodes[peerToNodeName(zEnd)].ip;
-        const aEndLabel = peerToLabel(aEnd);
-        const zEndLabel = peerToLabel(zEnd);
+    try {
+        const promises = [];
+        peers.forEach((peer, index) => {
+            const aEnd = peer[0];
+            const zEnd = peer[1];
+            const nodeA = nodes[utils.peerToNodeName(aEnd)];
+            const nodeZ = nodes[utils.peerToNodeName(zEnd)];
+            const aEndLabel = utils.peerToLabel(nodeA, aEnd);
+            const zEndLabel = utils.peerToLabel(nodeZ, zEnd);
 
-        // Too long sleep here, sort by IP and do several nodes concurrently!
-        const peerPromise = Q.delay(7000*index).done(() => {
-            nodeCom.createAndConfigPeer(token, aEndLabel, zEndLabel, aEndIp, zEndIp)
+            // Too long sleep here, sort by IP and do several nodes concurrently!
+            const peerPromise = Q.delay(7000 * index).done(() => {
+                nodeCom.createAndConfigPeer(token, aEndLabel, zEndLabel, nodeA, nodeZ)
+            });
+            promises.push(peerPromise);
         });
-        promises.push(peerPromise);
-    });
 
-    const peersPromise = Q.all(promises);
+        const peersPromise = Q.all(promises);
 
-    peersPromise.catch((err) => {
-        console.log("Something went south when creating peers", err);
-        throw err;
-    });
+        peersPromise.catch((err) => {
+            console.log("Something went south when creating peers", err);
+            throw err;
+        });
+    } catch (err) {
+        console.log(err);
+        console.log(err.stack);
+    }
 
     return peersPromise;
 }
 
-// A:1:1:2 --> A
-function peerToNodeName(end) {
-    return end.substr(0, end.indexOf(':'));
-}
-
-// >= R27
-// A:1:1:2 --> 1:1:0:2
-//
-// < R27
-// A:1:1:2 --> 1:1:2
-function peerToLabel(end) {
-    const node = nodes[peerToNodeName(end)];
-    const nodeVersion = node.container.version;
-    const subSlotPort = end.substr(end.indexOf(':')+1);
-
-    // If peer is already written with MPO port inluded, just use it.
-    if ((subSlotPort.match(/\:/g)||[]).length === 3) {
-        return subSlotPort;
-    }
-
-    // Depending on container version, add a MPO identifer.
-    if (nodeVersion === "latest" || nodeVersion >= 27) {
-        const slotPortSepPos = subSlotPort.indexOf(":", 2);
-        return subSlotPort.slice(0, slotPortSepPos) + ":0" + subSlotPort.slice(slotPortSepPos);
-    } else {
-        return subSlotPort;
-    }
-
-}

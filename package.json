@@ -1,6 +1,6 @@
 {
   "name": "make-net",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "description": "Allows for spawning TM-docker containers and attaching these together with peers - into a net",
   "main": "index.js",
   "scripts": {
