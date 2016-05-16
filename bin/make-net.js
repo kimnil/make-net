@@ -55,8 +55,10 @@ function showUsage() {
 }
 
 function parseFile(pathToNetSpec) {
+    var data;
+
     try {
-        const data = fs.readFileSync(pathToNetSpec, 'utf8');
+        data = fs.readFileSync(pathToNetSpec, 'utf8');
     } catch(err) {
         console.log("Could not open " + pathToNetSpec);
         console.log("Are you sure it exists and is readable for me? \nI was looking for it here: " + process.cwd());
