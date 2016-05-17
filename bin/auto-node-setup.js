@@ -51,7 +51,7 @@ function errHandler(err) {
 function showUsage() {
     stdout.write("\n");
     stdout.write("Usage: \n");
-    stdout.write("make-net my-net-specification.json \n");
+    stdout.write("auto-node-setup my-net-specification.json \n");
 }
 
 function parseFile(pathToNetSpec) {

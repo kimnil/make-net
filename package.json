@@ -1,5 +1,5 @@
 {
-  "name": "make-net",
+  "name": "auto-node-setup",
   "version": "0.0.20",
   "description": "Allows for spawning TM-docker containers and attaching these together with peers - into a net",
   "main": "index.js",
@@ -16,6 +16,6 @@
     "registry": "https://artifactory.transmode.se/artifactory/api/npm/npm-local"
   },
   "bin": {
-    "make-net": "bin/make-net.js"
+    "make-net": "bin/auto-node-setup.js"
   }
 }
